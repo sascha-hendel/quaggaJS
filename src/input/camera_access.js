@@ -9,6 +9,40 @@ var streamRef,
  * @param {Object} success Callback
  * @param {Object} failure Callback
  */
+
+function getUserMedia(constraints, success, failure) { 
+    if(navigator.mediaDevices){
+        if(navigator.mediaDevices.enumerateDevices){
+            var flag=false;
+            navigator.mediaDevices.enumerateDevices().then(function(devices){
+                devices.forEach(function(device){
+                    if(device.kind=="videoinput"){
+                        flag=true;   
+                    }
+                })
+            })
+            if (flag){
+                navigator.mediaDevices.getUserMedia(constraints)
+                .then(function(mediaStream) {
+                    streamRef = mediaStream;
+                    var videoSrc = (window.URL && window.URL.createObjectURL(mediaStream)) || mediaStream;
+                    success.apply(null, [videoSrc]);
+                })
+                .catch(function(error) {
+                    failure(new TypeError("Problem with mediaStream"));                    
+                })
+            } else {
+                failure(new TypeError("Webcam not available")); 
+            }
+        } else {
+            failure(new TypeError("mediaDevices.enumerateDevices not available"));
+        }
+    } else {
+        failure(new TypeError("mediaDevices not available"));
+    }
+}
+ 
+/* 
 function getUserMedia(constraints, success, failure) {
     if (typeof navigator.getUserMedia !== 'undefined') {
         navigator.getUserMedia(constraints, function (stream) {
@@ -20,6 +54,7 @@ function getUserMedia(constraints, success, failure) {
         failure(new TypeError("getUserMedia not available"));
     }
 }
+*/
 
 function loadedData(video, callback) {
     var attempts = 10;
